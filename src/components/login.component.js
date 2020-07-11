@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 
 import { Typography, Card, CardContent, Divider, TextField, Button } from '@material-ui/core'
 import { withStyles } from '@material-ui/core/styles';
-
 import Swal from 'sweetalert2';
 
 import axios from 'axios';
@@ -53,22 +52,17 @@ class Login extends React.Component {
   onLoginSubmit(e) {
     e.preventDefault();
     Swal.fire({
-      title: 'Signing in...',
-      preConfirm: () => {
-        Swal.showLoading();
-      },
-    }).then(() => {
-      axios
-      .post("http://localhost:5000/user/login", this.state)
-      .then(res => {
-        console.log(res);
-        Swal.fire({
-          title: `Welcome, ${res.data.firstname}`,
-          icon: 'success'
-        });
-      })
-      .catch(err => console.log(err));
-    });
+      title: 'Signing in... You\'ll be redirected',
+      imageUrl: 'https://66.media.tumblr.com/a6177f6b977637597850b273022c81ed/tumblr_nurhzkuKQO1syz1nro1_500.gif',
+      showConfirmButton: false
+    })
+    axios
+    .post("http://localhost:5000/auth/login", this.state)
+    .then(res => {
+        localStorage.setItem("dp_user", res.data.token);
+        window.location.href="/profile";
+    })
+    .catch(err => console.log(err));
   }
   
   render() {

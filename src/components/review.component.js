@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-import { Typography, Card, CardContent, Divider, Button, MenuItem, Select, TextareaAutosize, InputLabel } from '@material-ui/core'
+import { Typography, Card, CardContent, Divider, Button, MenuItem, Select, TextareaAutosize, InputLabel, TextField } from '@material-ui/core'
 import { withStyles } from '@material-ui/core/styles';
 
 import Swal from 'sweetalert2';
+
+import axios from 'axios';
 
 const styles = theme => ({
   root: {
@@ -30,26 +32,45 @@ class Review extends React.Component {
         this.state = {
             rating: 1,
             comments: '',
-            title: props.match.params.id, 
+            title: '',
+            location: '',
+            password: ''
         }
 
-        this.onChangeComments = this.onChangeComments.bind(this);
+        this.onInputChange = this.onInputChange.bind(this);
         this.onSubmitReview = this.onSubmitReview.bind(this);
         this.onChangeRating = this.onChangeRating.bind(this);
+
     }
 
-    onChangeComments(e) {
+    componentDidMount() {
+        let config = {
+            headers: {
+                authorization: "Bearer " + localStorage.getItem("dp_user")
+            }
+        }
+        axios
+            .get("http://localhost:5000/paper/details/" + this.props.match.params.id, config)
+            .then(response => {
+                this.setState({
+                    title: response.data.paper.title,
+                    location: response.data.paper.location
+                });
+            })
+            .catch(err => {
+                console.log(err);
+                Swal.fire({
+                    title: "Something went wrong",
+                    text: "Couldn't retrieve details for " + this.props.match.params.id + ". Please check if you're search for correct paper",
+                    icon: "error"
+                });
+            });
+    }
+
+    onInputChange(e) {
+        e.preventDefault();
         this.setState({
-            comments: e.target.value
-        })
-    }
-
-    onSubmitReview() {
-        Swal.fire({
-            title: this.state.title,
-            text: this.state.comments,
-            icon: 'success',
-            confirmButtonText: 'Cool!'
+            [e.target.id]: e.target.value
         })
     }
 
@@ -59,6 +80,58 @@ class Review extends React.Component {
             rating: e.target.value
         });
     }
+
+    onSubmitReview(e) {
+        e.preventDefault(e);
+        let data = {
+            paper: this.props.match.params.id,
+            rating: this.state.rating,
+            review: this.state.comments,
+            password: this.state.password,
+        }
+        axios
+          .post('http://localhost:5000/review/', data,
+            {
+              headers: {
+                'authorization': 'Bearer ' + localStorage.getItem('dp_user')
+              }
+            }
+          )
+          .then(response => {
+            if(response.data.code === "success") {
+              this.setState({
+                rating: 1,
+                comments: '' ,
+                password: '',
+              });
+              Swal.fire({
+                title: 'Upload Success',
+                text: "Congrats! You've successfully added your review for paper",
+                icon: 'success'
+              });
+            } else if (response.data.code === "failure") {
+              Swal.fire({
+                title: 'Uh oh!',
+                text: response.data.msg,
+                icon: 'error'
+              });
+            } else {
+              Swal.fire({
+                title: 'Damn!',
+                text: 'Something went wrong',
+                icon: 'error'
+              });
+            }
+          })
+          .catch(err => {
+            console.log(err);
+            Swal.fire({
+              title: 'Fatal error!',
+              text: 'Something went really wrong!',
+              icon: 'error'
+            });
+          });
+        }
   
     render() {
     
@@ -74,12 +147,12 @@ class Review extends React.Component {
                     <Divider />
                     <Typography variant="body2" component="p" style={{paddingTop: '2%'}}>
                         <Typography variant="h5">
-                            Title : {this.state.title}
+                            Title : <a href={this.state.location} target="_blank" rel="noopener noreferrer">{this.state.title}</a>
                         </Typography><br />
-                        <TextareaAutosize aria-label="empty textarea" 
-                        placeholder="Enter your comments" value={this.state.comments} rowsMin={10} cols={100} onChange={this.onChangeComments}/>
-                        <p><InputLabel id="Rating">Give rating</InputLabel></p>
-                        <Select className={classes.rating} labelId="select-label" id="simple-select" value={this.state.rating}  onChange={this.onChangeRating}>
+                        <TextareaAutosize aria-label="empty textarea" id="comments"
+                        placeholder="Enter your comments" value={this.state.comments} rowsMin={10} cols={100} onChange={this.onInputChange}/>
+                        <p><InputLabel >Give rating</InputLabel></p>
+                        <Select className={classes.rating} labelId="select-label" id="rating" value={this.state.rating} onChange={this.onChangeRating}>
                             <MenuItem value={1}>1</MenuItem>
                             <MenuItem value={2}>2</MenuItem>
                             <MenuItem value={3}>3</MenuItem>
@@ -90,8 +163,10 @@ class Review extends React.Component {
                             <MenuItem value={8}>8</MenuItem>
                             <MenuItem value={9}>9</MenuItem>
                             <MenuItem value={10}>10</MenuItem>
-                        </Select>
+                        </Select><br />
                         <p>
+                            <TextField id="password" className={classes.name} type="password" label="Password" placeholder="Enter password"
+                            variant="outlined" value={this.state.password} onChange={this.onInputChange} /><br /><br />                       
                             <Button variant="contained" className={classes.field} color="primary" onClick={this.onSubmitReview}>
                                 Submit Review
                             </Button>

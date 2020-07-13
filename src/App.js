@@ -9,6 +9,7 @@ import Papers from './components/papers.component';
 import Review from './components/review.component';
 import Profile from './components/profile.component';
 import AddPaper from './components/add.paper.component';
+import Paper from './components/paper.component';
 
 class App extends React.Component {
   
@@ -25,6 +26,7 @@ class App extends React.Component {
           <Route path="/profile" component={Profile} />
           <Route path="/register" component={Register} />
           <Route path="/papers" component={Papers} />
+          <Route path="/paper/:id" component={Paper} />
           <Route path="/submitPaper" component={AddPaper} />
           <Route path="/review/:id" component={Review} />
         </Container>

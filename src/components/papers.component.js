@@ -1,8 +1,12 @@
 import React from 'react';
 
-import { Typography, Divider, Accordion, AccordionSummary, AccordionDetails} from '@material-ui/core'
+import { Typography, Divider, List } from '@material-ui/core'
 import { withStyles } from '@material-ui/core/styles';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+
+import PaperListElement from './paperListElement.component';
+
+import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 const styles = theme => ({
   root: {
@@ -10,23 +14,70 @@ const styles = theme => ({
     margin: '5%',
     padding: '8px'
   },
-  bullet: {
-    display: 'inline-block',
-    margin: '0 2px',
-    transform: 'scale(0.8)',
+  list: {
+    backgroundColor: theme.palette.background.paper,
   },
-  title: {
-    fontSize: '100%',
-  },
-  pos: {
-    marginBottom: 12,
-  },
-  field: {
-      margin: '25px 0 0 0',
-  }
 });
 
 class Papers extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      papers: [],
+      configHeaders: {
+        headers: {
+          authorization: "Bearer " + localStorage.getItem("dp_user")
+        }
+      }
+    }
+  }
+
+  componentDidMount() {
+    axios
+    .get("http://localhost:5000/paper/", this.state.configHeaders)
+    .then(res => {
+      if (res.data.length > 0) {
+        this.setState({
+          papers: res.data
+        });  
+      } else {
+        this.setState({
+          papers: []
+        });
+      }
+    })
+    .catch(err => {
+        this.setState({
+          papers: []
+        });
+    });
+  }
+
+  showPapers(classes) {
+    var paperList = [];
+    if (this.state.papers.length > 0) {
+      for (var paper of this.state.papers) {
+        var paperListElement = <PaperListElement paper={paper}/>
+        paperList.push(paperListElement);
+      }
+      return (
+        <div className={classes.list}>
+          <List dense={true}>
+            {paperList}
+          </List>
+        </div>
+      );
+    } else {
+        return(
+          <div style={{marginTop: '10px'}}>
+            <Typography variant="h6">
+              No Papers found.
+            </Typography>
+          </div>
+        );
+    }
+  }
   
   render() {
     
@@ -35,20 +86,10 @@ class Papers extends React.Component {
     return(
       <div className={classes.root}>
         <Typography variant="h5" color="textSecondary" gutterBottom>
-            My Papers
+            My Papers (<Link to="/submitPaper">Add a new paper</Link>)
         </Typography>
         <Divider />
-        <Accordion>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content">
-              <Typography className={classes.heading}>Accordion 1</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-          <Typography>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex,
-              sit amet blandit leo lobortis eget.
-          </Typography>
-          </AccordionDetails>
-        </Accordion>
+        {this.showPapers(classes)}
       </div>
     );
   }

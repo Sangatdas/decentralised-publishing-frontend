@@ -57,7 +57,6 @@ class Profile extends React.Component {
           lastname: res.data.lastname,
           email: res.data.email,
           account: res.data.account,
-          papers: res.data.papers
         });       
       })
       .catch(err => {
@@ -75,7 +74,18 @@ class Profile extends React.Component {
             bal: "<span color='red'>Failed to retrieve balance!</span>"
           });
       });
-
+      axios
+      .get("http://localhost:5000/paper/", this.state.configHeaders)
+      .then(res => {
+        this.setState({
+          papers: res.data
+        });
+      })
+      .catch(err => {
+          this.setState({
+            bal: "<span color='red'>Failed to retrieve balance!</span>"
+          });
+      });
   }
 
   onClickBuyButton(e) {

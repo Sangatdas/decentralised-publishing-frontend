@@ -34,9 +34,13 @@ class AddPaper extends React.Component {
       password: ''
     }
 
+    if (localStorage.getItem("dp_user") == null) window.location.href='/';
+
     this.onInputChange = this.onInputChange.bind(this);
     this.onFileChange = this.onFileChange.bind(this);
     this.onUploadPaper = this.onUploadPaper.bind(this);
+    this.conditionalRender = this.conditionalRender.bind(this);
+
   }
 
   onInputChange(e) {
@@ -80,6 +84,7 @@ class AddPaper extends React.Component {
             text: "Congrats! You've successfully uploaded your paper",
             icon: 'success'
           });
+          window.location.href="/papers/"
         } else if (response.data.code === "failure") {
           Swal.fire({
             title: 'Uh oh!',
@@ -103,13 +108,12 @@ class AddPaper extends React.Component {
         });
       })
   }
-  
-  render() {
-    
-    const { classes } = this.props;
 
-    return(
-      <div>
+  conditionalRender(classes) {
+    if (localStorage.getItem("dp_user") == null || localStorage.getItem("dp_user_type") !== "0") {
+      window.location.href = '/profile';
+    } else {
+      return (
         <Card className={classes.root} variant="outlined">
             <CardContent>
                 <Typography variant="h5" color="textSecondary" gutterBottom>
@@ -137,6 +141,18 @@ class AddPaper extends React.Component {
                 </Typography>
             </CardContent>
         </Card>
+      )
+    }
+  }
+
+  
+  render() {
+    
+    const { classes } = this.props;
+
+    return(
+      <div>
+        {this.conditionalRender(classes)}
       </div>
     );
   }

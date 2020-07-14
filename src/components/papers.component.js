@@ -7,6 +7,7 @@ import PaperListElement from './paperListElement.component';
 
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 const styles = theme => ({
   root: {
@@ -29,8 +30,13 @@ class Papers extends React.Component {
         headers: {
           authorization: "Bearer " + localStorage.getItem("dp_user")
         }
-      }
+      },
     }
+
+    this.showPapers = this.showPapers.bind(this);
+    this.showTitle = this.showTitle.bind(this);
+    this.conditionalRender = this.conditionalRender.bind(this);
+
   }
 
   componentDidMount() {
@@ -48,9 +54,31 @@ class Papers extends React.Component {
       }
     })
     .catch(err => {
-        this.setState({
-          papers: []
-        });
+      Swal.fire({
+        title: "Something went wrong.",
+        text: "Cannot fetch papers.",
+        icon: "error"
+      });
+      this.setState({
+        papers: []
+      });
+    });
+    axios
+    .get('http://localhost:5000/user/', this.state.configHeaders)
+    .then(res => {
+      this.setState({
+        userType: res.data.user.type
+      });       
+    })
+    .catch(err => {
+      Swal.fire({
+        title: "Something went wrong.",
+        text: "Cannot fetch user details. Page won't be loaded.",
+        icon: "error"
+      });
+      this.setState({
+        papers: []
+      });
     });
   }
 
@@ -78,6 +106,39 @@ class Papers extends React.Component {
         );
     }
   }
+
+  showTitle() {
+    if (this.state.userType > 0) {
+      return(
+        <Typography variant="h5" color="textSecondary" gutterBottom>
+          Papers to be reviewed
+        </Typography>
+      );
+    } else if (this.state.userType === 0) {
+      return(
+        <Typography variant="h5" color="textSecondary" gutterBottom>
+          My Papers (<Link to="/submitPaper">Submit a new paper</Link>)
+        </Typography>
+      );
+    } else {
+      return;
+    }
+  }
+
+  conditionalRender(classes) {
+    if (localStorage.getItem("dp_user") == null) {
+      window.location.href = '/';
+    } else {
+      return (
+        <div>
+          {this.showTitle()}
+          <Divider />
+          {this.showPapers(classes)}
+        </div>
+      )
+    }
+    
+  }
   
   render() {
     
@@ -85,11 +146,7 @@ class Papers extends React.Component {
 
     return(
       <div className={classes.root}>
-        <Typography variant="h5" color="textSecondary" gutterBottom>
-            My Papers (<Link to="/submitPaper">Add a new paper</Link>)
-        </Typography>
-        <Divider />
-        {this.showPapers(classes)}
+        {this.conditionalRender(classes)}
       </div>
     );
   }

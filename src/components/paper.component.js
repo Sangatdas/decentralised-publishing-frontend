@@ -1,6 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
-import { Typography, Divider, Avatar, List, ListItem, ListItemAvatar, ListItemText } from '@material-ui/core'
+import { Typography, Divider, Button } from '@material-ui/core';
+import {Avatar, List, ListItem, ListItemAvatar, ListItemText } from '@material-ui/core';
+import { Card, CardContent, CardActions } from '@material-ui/core';
 import PersonIcon from '@material-ui/icons/Person';
 import FolderIcon from '@material-ui/icons/Folder';
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
@@ -43,6 +46,8 @@ class Paper extends React.Component {
     }
 
     this.showReviews = this.showReviews.bind(this);
+    this.conditionalRender = this.conditionalRender.bind(this);
+
   }
 
   componentDidMount() {
@@ -93,74 +98,97 @@ class Paper extends React.Component {
     }
   }
 
+  conditionalRender(classes) {
+    if (localStorage.getItem("dp_user") == null) {
+      window.location.href = '/';
+    } else {
+      return (
+        <div className={classes.root}>
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="h5" color="textSecondary" gutterBottom>
+                <a style={{flexGrow: 1}} href={"http://localhost:8080/ipfs/" + this.state.location} target="_blank" rel="noopener noreferrer">{this.state.title}</a>
+              </Typography>
+              <Divider />
+              <Typography>
+                <List>
+                  <ListItem>
+                          <ListItemAvatar>
+                              <Avatar>
+                                  <PersonIcon />
+                              </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                              primary="Author"
+                              secondary={this.state.author}
+                          />
+                  </ListItem>
+                  <Divider/>
+                  <ListItem>
+                          <ListItemAvatar>
+                              <Avatar>
+                                  <PersonIcon />
+                              </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                              primary="Owner"
+                              secondary={this.state.owner}
+                          />
+                  </ListItem>
+                  <Divider/>
+                  <ListItem>
+                          <ListItemAvatar>
+                              <Avatar>
+                                  <FolderIcon />
+                              </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                              primary="Hash"
+                              secondary={this.state.location}
+                          />
+                  </ListItem>
+                  <Divider/>
+                  <ListItem>
+                          <ListItemAvatar>
+                              <Avatar>
+                                  <AccessTimeIcon />
+                              </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                              primary="State"
+                              secondary={this.state.status ? "Reviewed | Rating: " + this.state.rating : "In Reviewing"}
+                          />
+                  </ListItem>
+                  <Divider/>
+                </List>
+                {
+                  localStorage.getItem("dp_user_type") > 0 ? (
+                    <CardActions style={{marginTop: '10px'}}>
+                      <Button size="small"><b><Link to="/papers" style={{color: "green", textDecoration: "none"}}>Add Review</Link></b></Button>
+                    </CardActions>                
+                  ) : (<span></span>)
+                }
+              </Typography>
+            </CardContent>
+          </Card>
+          <div style={{marginTop: "10px"}}>
+              <Typography variant="h5" color="textSecondary" gutterBottom>
+                  Reviews
+              </Typography>
+          </div>
+          <Divider/>
+          {this.showReviews(classes)}
+        </div>
+      )
+    }
+  }
+
   render() {
     const { classes } = this.props;
 
     return(
-      <div className={classes.root}>
-        <Typography variant="h5" color="textSecondary" gutterBottom>
-            <a href={"http://localhost:8080/ipfs/" + this.state.location} target="_blank" rel="noopener noreferrer">{this.state.title}</a>
-        </Typography>
-        <Divider />
-        <Typography>
-            <List>
-                <ListItem>
-                        <ListItemAvatar>
-                            <Avatar>
-                                <PersonIcon />
-                            </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText
-                            primary="Author"
-                            secondary={this.state.author}
-                        />
-                </ListItem>
-                <Divider/>
-                <ListItem>
-                        <ListItemAvatar>
-                            <Avatar>
-                                <PersonIcon />
-                            </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText
-                            primary="Owner"
-                            secondary={this.state.owner}
-                        />
-                </ListItem>
-                <Divider/>
-                <ListItem>
-                        <ListItemAvatar>
-                            <Avatar>
-                                <FolderIcon />
-                            </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText
-                            primary="Hash"
-                            secondary={this.state.location}
-                        />
-                </ListItem>
-                <Divider/>
-                <ListItem>
-                        <ListItemAvatar>
-                            <Avatar>
-                                <AccessTimeIcon />
-                            </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText
-                            primary="State"
-                            secondary={this.state.status ? "Reviewed | Rating: " + this.state.rating : "In Reviewing"}
-                        />
-                </ListItem>
-                <Divider/>
-            </List>
-            </Typography>
-            <div style={{marginTop: "10px"}}>
-                <Typography variant="h5" color="textSecondary" gutterBottom>
-                    Reviews
-                </Typography>
-            </div>
-            <Divider/>
-            {this.showReviews(classes)}
+      <div>
+        {this.conditionalRender(classes)}
       </div>
     );
   }

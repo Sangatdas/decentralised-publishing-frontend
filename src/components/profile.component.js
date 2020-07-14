@@ -1,7 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-import { Typography, Card, CardContent, Divider, Button } from '@material-ui/core'
+import { Typography, Card, CardContent, CardActions, Divider, Button } from '@material-ui/core'
+import { Avatar, List, ListItem, ListItemAvatar, ListItemText } from '@material-ui/core';
+import PersonIcon from '@material-ui/icons/Person';
+import EmailIcon from '@material-ui/icons/Email';
+import AccountBalanceWalletIcon from '@material-ui/icons/AccountBalanceWallet';
+import StarsIcon from '@material-ui/icons/Stars';
+
 import { withStyles } from '@material-ui/core/styles';
 
 import axios from 'axios';
@@ -53,38 +59,19 @@ class Profile extends React.Component {
       .get('http://localhost:5000/user/', this.state.configHeaders)
       .then(res => {
         this.setState({
-          firstname: res.data.firstname,
-          lastname: res.data.lastname,
-          email: res.data.email,
-          account: res.data.account,
-        });       
+          firstname: res.data.user.firstname,
+          lastname: res.data.user.lastname,
+          email: res.data.user.email,
+          account: res.data.user.account,
+          type: res.data.user.type,
+          balance: res.data.user.balance,
+          sub_count: res.data.user.sub_count,
+          credibility: res.data.user.credibility,
+        });
+        localStorage.setItem("dp_user_type", res.data.user.type);     
       })
       .catch(err => {
         console.log(err);
-      });
-    axios
-      .get("http://localhost:5000/token/balance/", this.state.configHeaders)
-      .then(res => {
-        this.setState({
-          balance: res.data.balance
-        });
-      })
-      .catch(err => {
-          this.setState({
-            bal: "<span color='red'>Failed to retrieve balance!</span>"
-          });
-      });
-      axios
-      .get("http://localhost:5000/paper/", this.state.configHeaders)
-      .then(res => {
-        this.setState({
-          papers: res.data
-        });
-      })
-      .catch(err => {
-          this.setState({
-            bal: "<span color='red'>Failed to retrieve balance!</span>"
-          });
       });
   }
 
@@ -123,11 +110,11 @@ class Profile extends React.Component {
       console.log(response);
       if (response.value.data.code === "success") {
         Swal.fire({
-          title: `Successfully bought tokens. Refresh page too see updated balance.`,
+          title: "Successfully bought tokens. Refresh page too see updated balance.",
           icon: "success",
-          text: "Token transfer transaction hash: " + response.value.data.msg.tokenTxHash + 
-                "\nEther transfer transaction hash: " + response.value.data.msg.ethTxHash +
-                "\nDisclaimer: " + response.value.data.msg.disclaimer
+          html: "Token transfer transaction hash: " + response.value.data.msg.tokenTxHash + 
+                "<br>Ether transfer transaction hash: " + response.value.data.msg.ethTxHash +
+                "<br>Disclaimer: " + response.value.data.msg.disclaimer
         });
       }
     })
@@ -168,50 +155,100 @@ class Profile extends React.Component {
       console.log(response);
       if (response.value.data.code === "success") {
         Swal.fire({
-          title: `Successfully sold tokens. Refresh page too see updated balance.`,
+          title: "Successfully sold tokens. Refresh page too see updated balance.",
           icon: "success",
-          text: "Token transfer transaction hash: " + response.value.data.msg.tokenTxHash + 
-                "\nEther transfer transaction hash: " + response.value.data.msg.ethTxHash +
-                "\nDisclaimer: " + response.value.data.msg.disclaimer
+          html: "Token transfer transaction hash: " + response.value.data.msg.tokenTxHash + 
+                "<br>Ether transfer transaction hash: " + response.value.data.msg.ethTxHash +
+                "<br>Disclaimer: " + response.value.data.msg.disclaimer
         });
       }
     })
   }
 
   render() {
+    if (localStorage.getItem("dp_user") === null) window.location.href = '/';
     const { classes } = this.props;
 
     return(
       <div>
         <Card className={classes.root} variant="outlined">
-            <CardContent>
-                <Typography variant="h5" color="textSecondary" gutterBottom>
-                    My Profile
-                </Typography>
-                <Divider />
-                <div style={{paddingTop: '10px'}}>
-                  <Typography variant="body2" component="p">
-                      <Typography variant="h5">
-                          Name: {this.state.firstname + " " + this.state.lastname}
-                      </Typography><br/>
-                      <Typography variant="h5">
-                          Email: {this.state.email}
-                      </Typography><br/>
-                      <Typography variant="h5">
-                          Account: {this.state.account}
-                      </Typography><br/>
-                      <Typography variant="h5">
-                          Number of submissions: {this.state.papers.length}&nbsp;
-                          <span className={classes.link}><Link to="/papers">View Submissions</Link></span>
-                      </Typography><br/>
-                      <Typography variant="h5">
-                          Balance: {this.state.balance}<br/>
-                      </Typography>
-                      <p><Button variant="contained" color="primary" onClick={this.onClickBuyButton}>Buy Tokens</Button></p>
-                      <p><Button variant="contained" color="secondary" onClick={this.onClickSellButton}>Sell Tokens</Button></p>
-                  </Typography>
-                </div>
-            </CardContent>
+          <CardContent>
+            <Typography variant="h5" color="textSecondary" gutterBottom>
+                My Profile
+            </Typography>
+            <Divider />
+            <div style={{paddingTop: '10px'}}>
+              <Typography>
+                <List>
+                  <ListItem>
+                    <ListItemAvatar>
+                      <Avatar>
+                        <PersonIcon/>
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary="Name"
+                      secondary={this.state.firstname + this.state.lastname}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemAvatar>
+                      <Avatar>
+                        <EmailIcon/>
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary="Email"
+                      secondary={this.state.email}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemAvatar>
+                      <Avatar>
+                        <AccountBalanceWalletIcon/>
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary="Balance"
+                      secondary={this.state.balance + " DPT"}
+                    />
+                  </ListItem>
+                  { this.state.type > 0 ? (
+                      <ListItem>
+                        <ListItemAvatar>
+                          <Avatar>
+                            <StarsIcon/>
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary="Credibility"
+                          secondary={this.state.credibility}
+                        />
+                      </ListItem>
+                    ) : (
+                      <ListItem>
+                        <ListItemAvatar>
+                          <Avatar>
+                            <StarsIcon/>
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary="Number of Submissions"
+                          secondary={this.state.sub_count}
+                        />
+                      </ListItem>
+                    )
+                  }
+                </List>
+                <Divider/>
+                <CardActions style={{marginTop: '10px'}}>
+                  <Button size="small" color="primary" onClick={this.onClickBuyButton}><b>Buy Tokens</b></Button>
+                  <Button size="small" color="secondary" onClick={this.onClickSellButton}><b>Sell Tokens</b></Button>
+                  <Button size="small"><b><Link to="/papers" style={{color: "green", textDecoration: "none"}}>Show papers</Link></b></Button>
+                </CardActions>
+              </Typography>
+            </div>
+          </CardContent>
         </Card>
       </div>
     );

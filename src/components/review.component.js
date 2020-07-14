@@ -28,18 +28,19 @@ const styles = theme => ({
 class Review extends React.Component {
 
     constructor(props) {
-        super(props);
-        this.state = {
-            rating: 1,
-            comments: '',
-            title: '',
-            location: '',
-            password: ''
-        }
+      super(props);
+      this.state = {
+          rating: 1,
+          comments: '',
+          title: '',
+          location: '',
+          password: ''
+      }
 
-        this.onInputChange = this.onInputChange.bind(this);
-        this.onSubmitReview = this.onSubmitReview.bind(this);
-        this.onChangeRating = this.onChangeRating.bind(this);
+      this.onInputChange = this.onInputChange.bind(this);
+      this.onSubmitReview = this.onSubmitReview.bind(this);
+      this.onChangeRating = this.onChangeRating.bind(this);
+      this.conditionalRender = this.conditionalRender.bind(this);
 
     }
 
@@ -132,14 +133,13 @@ class Review extends React.Component {
             });
           });
         }
-  
-    render() {
-    
-        const { classes } = this.props;
 
-        return(
-        <div>
-            <Card className={classes.root} variant="outlined">
+    conditionalRender(classes) {
+      if (localStorage.getItem("dp_user") == null || localStorage.getItem("dp_user_type") === "0") {
+        window.location.href = '/'
+      } else {
+        return (
+          <Card className={classes.root} variant="outlined">
                 <CardContent>
                     <Typography variant="h5" color="textSecondary" gutterBottom>
                         Add Review
@@ -175,7 +175,18 @@ class Review extends React.Component {
                     </Typography>
                 </CardContent>
             </Card>
-        </div>
+        )
+      }
+
+    }
+  
+    render() {
+        const { classes } = this.props;
+
+        return(
+          <div>
+            {this.conditionalRender(classes)}
+          </div>
         );
     }
 }

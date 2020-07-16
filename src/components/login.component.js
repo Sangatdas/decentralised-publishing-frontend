@@ -62,7 +62,14 @@ class Login extends React.Component {
         localStorage.setItem("dp_user", res.data.token);
         window.location.href="/profile";
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      console.log(err);
+      Swal.fire({
+        title: "Unable to log in",
+        icon: "error",
+        text: "Re-check your username and password."
+      })
+    });
   }
 
   render() {
